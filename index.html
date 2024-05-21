@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masonry Layout with Navbar</title>
+    <link rel="stylesheet" href="./style.css">
+    <style>
+        .popup--card {
+            display: none;
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 10;
+        }
+.grid {
+  display: grid;
+  grid-gap: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-auto-rows: 1px;
+}
+.feedback {
+  background-color : #31B0D5;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 4px;
+  border-color: #46b8da;
+}
+
+#mybutton {
+    z-index: 1;
+  position: fixed;
+  top: 10px;
+  right: 10px;
+}
+
+.grid__item {
+  grid-row-end: span var(--row-span, 20);
+
+  transition: transform 0.3s;
+  transition-timing-function: ease-in-out;
+}
+
+img {
+  width: 100%;
+  border-radius: 5px;
+  border: wheat 1px solid;
+}
+.grid__item:hover {
+    cursor: pointer;
+    transform: scale(1.2);
+}
+
+.cover {
+  height: 100%;
+  object-fit: cover;
+}
+    </style>
+    <!-- <link rel="stylesheet" href="./style.css"> -->
+    <!-- Include Masonry.js from CDN -->
+    
+</head>
+<body>
+    <div id="mybutton">
+        <button class="upload-button">Upload Image</button>
+        <input type="file" id="imageInput" accept="image/*" style="display: none;">
+        <div class="overlay" id="overlay"></div>
+        <div class="popup-card" id="popupCard">
+            <button class="close-button" id="closeButton">&times;</button>
+            <div class="image-preview" id="imagePreview"></div>
+            <button class="submit-button" id="submitButton">Submit</button>
+        </div>
+        </div>
+
+    
+
+<div class="grid"></div>
+
+</body>
+        
+
+<script>
+    function initializeMasonry() {
+    const grid = document.querySelector(".grid");
+    const rowSize = parseInt(getComputedStyle(grid).getPropertyValue("grid-auto-rows"), 10);
+    const rowGap = parseInt(getComputedStyle(grid).getPropertyValue("grid-gap"), 10);
+    const gridItems = [];
+
+    const positionGridItems = () => {
+        gridItems.forEach(({ item, content }) => {
+            content.classList.remove("cover");
+            const rowSpan = Math.ceil(
+                (content.offsetHeight + rowGap) / (rowSize + rowGap)
+            );
+            item.style.setProperty("--row-span", rowSpan);
+            item.style.gridRowEnd = `span ${rowSpan}`;
+            content.classList.add("cover");
+        });
+    };
+
+    const debounce = (func, wait) => {
+        let timeout;
+        return function (...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    };
+
+    const generateImages = (el, count = 10) => {
+        const getRandomSize = (min, max) => Math.round(Math.random() * (max - min) + min);
+
+        const newImage = () => {
+            const item = document.createElement("div");
+            item.className = "grid__item";
+
+            const content = document.createElement("img");
+            const width = getRandomSize(200, 600);
+            const height = getRandomSize(200, 400);
+            content.src = `https://unsplash.it/${width}/${height}`;
+            content.className = "cover";
+            const popup = document.createElement('div');
+            popup.className="popup--card";
+            // popup.textContent = "Resolution:", `${width}x${height}`;
+            item.appendChild(content);
+            item.appendChild(popup);
+             item.addEventListener('mouseenter', () => {
+                    const width = content.naturalWidth;
+                    const height = content.naturalHeight;
+                    popup.textContent = `Resolution: ${width}x${height}`;
+                    popup.style.display = 'block';
+                });
+
+                item.addEventListener('mouseleave', () => {
+                    popup.style.display = 'none';
+                });
+            gridItems.push({ item, content });
+
+            return item;
+        };
+
+        let images = document.createDocumentFragment();
+        for (let i = 0; i < count; i++) images.appendChild(newImage());
+        el.appendChild(images);
+    };
+
+    generateImages(grid, 40);
+
+    const positionAndDebounce = () => {
+        positionGridItems();
+        window.addEventListener("resize", debounce(positionGridItems, 100));
+    };
+
+    window.addEventListener("load", positionAndDebounce);
+}
+
+// Call the function to initialize Masonry
+initializeMasonry();
+
+</script>
+<script src="./script.js"></script>
+
+</html>
